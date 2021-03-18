@@ -15,56 +15,92 @@ public class Main {
 
     public static int[] solution(int[] pegs) {
         // Your code here
-        //0. Translate all unclaer words.
-        //0.1 Understand problem https://en.wikipedia.org/wiki/Gear_train
-        //1. Quick and dirty for 2 gears
-        //2. Solution for 3 gears
-        //3. Try finding patterns
-        //4. Solution for 4 and maybe 5 gears
-        //5. Try finding patterns
-        //6. Recursion ?? Looks like a good case for it
 
         int [] negativeResult = {-1, -1};
-        int [] result;
         boolean isPegsSizeEven = pegs.length%2 == 0;
 
         if(pegs.length < 2){
             return negativeResult;
         }
 
-        int number = 2*(calculate(pegs));
+        // Iterativly
+        //int radiusOfFirst = 2*(findRadiusOfFirstGear(pegs));
+        //Recursively
+        int radiusOfFirst = 2*(findRadiusOfFirstGearRecursively(pegs, pegs.length-1, true));
 
+        //Change sign due to formula for odd length of array
+        // -r0=2(pegpos2 - pegpos1 - pegpos1 + pegpos0)
         if(!isPegsSizeEven) {
-            number *= -1;
+            radiusOfFirst *= -1;
         }
 
-
-        // peg should not be less the one , first one should be twice of the last one so no less than 2.
-        if (number <= 2){
+        if(radiusOfFirst < 2) {
             return negativeResult;
         }
 
-        boolean checkWhetherAllRadiusesAreBiggerThanOne = check(pegs ,number, isPegsSizeEven);
-
-        if(!checkWhetherAllRadiusesAreBiggerThanOne){
+        //if(!areAllRadiusesAreBiggerThanOne(pegs ,radiusOfFirst, isPegsSizeEven)){
+        if(!areAllRadiusesAreBiggerThanOneRecursively(pegs ,radiusOfFirst, 0, isPegsSizeEven)){
             return negativeResult;
         }
 
         if(isPegsSizeEven){
-            //return new int[]{number/3, 1};
-            if(number%3 == 0){
-                return new int[]{number/3, 1};
+            if(radiusOfFirst%3 == 0){
+                return new int[]{radiusOfFirst/3, 1};
             }
-            return new int[]{number, 3};
-        } else {
-            return new int[]{number, 1};
+            return new int[]{radiusOfFirst, 3};
         }
-        //return negativeResult;
+        return new int[]{radiusOfFirst, 1};
 
     }
 
-    private static boolean check(int[] pegs, int number, boolean isPegsSizeEven) {
-        int radius = number;
+    private static int findRadiusOfFirstGear(int[] pegs) {
+        int result = 0;
+        boolean signSubstract = true;
+        for(int a=pegs.length-1; a>=1; a--){
+            int distance = (pegs[a] - pegs[a-1]);
+            if(signSubstract){
+                result += distance;
+                signSubstract =false;
+            } else {
+                result -= distance;
+                signSubstract =true;
+            }
+
+        }
+        return result;
+    }
+
+    private static int findRadiusOfFirstGearRecursively(int[] pegs,
+                                                        int index,
+                                                        boolean changeSign) {
+        if(index <= 0){
+            return 0;
+        }
+        int distance = pegs[index] - pegs[index-1];
+        if(changeSign) {
+            return distance - findRadiusOfFirstGearRecursively(pegs, index-1, true);
+        }
+        return distance + findRadiusOfFirstGearRecursively(pegs, index-1, false);
+    }
+
+    private static boolean areAllRadiusesAreBiggerThanOneRecursively(int[] pegs,
+                                                                 int radius,
+                                                                 int index,
+                                                                 boolean isPegsSizeEven) {
+        if(index >= pegs.length-2){
+            return true;
+        }
+        if(isPegsSizeEven) {radius = radius/3;}
+        radius = pegs[index+1] - pegs[index] - radius;
+        if(radius < 1) { return false; }
+        return areAllRadiusesAreBiggerThanOneRecursively(pegs, radius, index+1, false);
+    }
+
+
+    private static boolean areAllRadiusesAreBiggerThanOne(int[] pegs,
+                                                          int radiusOfFirst,
+                                                          boolean isPegsSizeEven) {
+        int radius = radiusOfFirst;
         if(isPegsSizeEven) {radius = radius/3;}
         for(int i = 0; i<=pegs.length-2; i++){
             int newRadius = pegs[i+1] - pegs[i] - radius;
@@ -74,22 +110,6 @@ public class Main {
             radius = newRadius;
         }
         return true;
-    }
-
-    private static int calculate(int[] pegs) {
-        int result = 0;
-        boolean signSubstract = true;
-        for(int a=pegs.length-1; a>=1; a--){
-            if(signSubstract){
-                result += (pegs[a] - pegs[a-1]);
-                signSubstract =false;
-            } else {
-                result -= (pegs[a] - pegs[a-1]);
-                signSubstract =true;
-            }
-
-        }
-        return result;
     }
 
     private static void get(int[] a){
